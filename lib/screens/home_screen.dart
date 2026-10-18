@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../core/app_colors.dart';
 import '../core/app_text_styles.dart';
+import 'saving_entry.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -46,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
               elevation: 4,
             )
           : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: _AppBottomNavBar(
         currentIndex: _currentIndex,
         onTap: (i) => setState(() => _currentIndex = i),
@@ -1062,7 +1063,7 @@ class _AppBottomNavBar extends StatelessWidget {
     final items = [
       _NavItem(icon: Icons.dashboard_rounded, label: 'Dashboard'),
       _NavItem(icon: Icons.edit_note_rounded, label: 'Catatan'),
-      _NavItem(icon: Icons.track_changes_rounded, label: 'Target'),
+      _NavItem(icon: Icons.track_changes_rounded, label: 'Penghematan'),
       _NavItem(icon: Icons.tips_and_updates_rounded, label: 'Tips'),
     ];
 
@@ -1084,10 +1085,6 @@ class _AppBottomNavBar extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: List.generate(items.length, (i) {
-              // Leave center space for FAB
-              if (i == 2 && currentIndex == 0) {
-                return const SizedBox(width: 70);
-              }
               final selected = currentIndex == i;
               return GestureDetector(
                 onTap: () => onTap(i),
@@ -1163,14 +1160,7 @@ class _TargetTab extends StatelessWidget {
   const _TargetTab();
 
   @override
-  Widget build(BuildContext context) {
-    return _PlaceholderTab(
-      icon: Icons.track_changes_rounded,
-      color: AppColors.primaryGreen,
-      title: 'Atur Target',
-      subtitle: 'Tetapkan target bulanan hemat air & listrik.',
-    );
-  }
+  Widget build(BuildContext context) => const SavingEntry();
 }
 
 class _TipsTab extends StatelessWidget {
