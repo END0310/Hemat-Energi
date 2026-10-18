@@ -37,35 +37,63 @@ class AppFormatters {
 
   /// Format tanggal untuk header dashboard: e.g. "Senin, 12 Oktober"
   static String formatHeaderDate(DateTime date) {
-    return DateFormat('EEEE, d MMMM', 'id_ID').format(date);
+    try {
+      return DateFormat('EEEE, d MMMM', 'id_ID').format(date);
+    } catch (_) {
+      return DateFormat('EEEE, d MMMM').format(date);
+    }
   }
 
   /// Format tanggal transaksi token: e.g. "12 Oktober 2026"
   static String formatDate(DateTime date) {
-    return DateFormat('d MMMM yyyy', 'id_ID').format(date);
+    try {
+      return DateFormat('d MMMM yyyy', 'id_ID').format(date);
+    } catch (_) {
+      return DateFormat('d MMMM yyyy').format(date);
+    }
   }
 
   /// Format tanggal pendek: e.g. "12 Okt 2026"
   static String formatDateShort(DateTime date) {
-    return DateFormat('d MMM yyyy', 'id_ID').format(date);
+    try {
+      return DateFormat('d MMM yyyy', 'id_ID').format(date);
+    } catch (_) {
+      return DateFormat('d MMM yyyy').format(date);
+    }
   }
 
   /// Format tanggal + jam untuk catatan meter: e.g. "12 Oktober 2026 • 19.30"
   static String formatDateTime(DateTime date) {
-    final dateStr = DateFormat('d MMMM yyyy', 'id_ID').format(date);
-    final timeStr = DateFormat('HH.mm').format(date);
-    return '$dateStr • $timeStr';
+    try {
+      final dateStr = DateFormat('d MMMM yyyy', 'id_ID').format(date);
+      final timeStr = DateFormat('HH.mm').format(date);
+      return '$dateStr • $timeStr';
+    } catch (_) {
+      final dateStr = DateFormat('d MMMM yyyy').format(date);
+      final timeStr = DateFormat('HH:mm').format(date);
+      return '$dateStr • $timeStr';
+    }
   }
 
   /// Format jam saja: e.g. "07.30"
   static String formatTimeOnly(DateTime date) {
-    return DateFormat('HH.mm').format(date);
+    try {
+      return DateFormat('HH.mm').format(date);
+    } catch (_) {
+      return DateFormat('HH:mm').format(date);
+    }
   }
 
   /// Format waktu relatif ringkas: e.g. "Dicatat 12 Okt 2026 - 07.30"
   static String formatRecordedTime(DateTime date) {
-    final d = DateFormat('d MMM yyyy', 'id_ID').format(date);
-    final t = DateFormat('HH.mm').format(date);
-    return 'Dicatat $d - $t';
+    try {
+      final d = DateFormat('d MMM yyyy', 'id_ID').format(date);
+      final t = DateFormat('HH.mm').format(date);
+      return 'Dicatat $d - $t';
+    } catch (_) {
+      final d = DateFormat('d MMM yyyy').format(date);
+      final t = DateFormat('HH:mm').format(date);
+      return 'Dicatat $d - $t';
+    }
   }
 }

@@ -40,10 +40,12 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Validasi format email dengan RegExp
+  /// Validasi format email dengan RegExp yang andal
   bool _isValidEmail(String email) {
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    return emailRegex.hasMatch(email);
+    final clean = email.trim();
+    if (clean.isEmpty) return false;
+    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+    return emailRegex.hasMatch(clean);
   }
 
   /// Register akun baru
@@ -67,8 +69,8 @@ class AuthProvider extends ChangeNotifier {
       return false;
     }
 
-    if (!_isValidEmail(email.trim())) {
-      _errorMessage = 'Format email tidak valid.';
+    if (!_isValidEmail(email)) {
+      _errorMessage = 'Format email tidak valid (contoh: nama@email.com).';
       notifyListeners();
       return false;
     }
@@ -89,11 +91,16 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _authService.register(
+      final user = await _authService.register(
         nama: nama,
         email: email,
         password: password,
       );
+
+      // Simpan sesi dan user aktif agar langsung terautentikasi
+      await _authService.setSession(user.id!);
+      _currentUser = user;
+
       _isLoading = false;
       notifyListeners();
       return true;
@@ -161,9 +168,10 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Bersihkan pesan error
+  /// Bersihkan pesan error dan status loading
   void clearError() {
     _errorMessage = null;
+    _isLoading = false;
     notifyListeners();
   }
 }

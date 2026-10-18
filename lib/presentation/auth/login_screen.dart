@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/constants.dart';
 import '../electricity/electricity_provider.dart';
 import 'auth_provider.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -37,6 +38,29 @@ class _LoginScreenState extends State<LoginScreen> {
       await context.read<ElectricityProvider>().loadAllData(userId);
       if (!mounted) return;
       Navigator.of(context).pushReplacementNamed('/dashboard');
+    } else {
+      if (authProvider.errorMessage != null) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    authProvider.errorMessage!,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: AppConstants.errorRed,
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 
@@ -235,38 +259,44 @@ class _LoginScreenState extends State<LoginScreen> {
 
               // Belum punya akun? Daftar
               Center(
-                child: GestureDetector(
-                  onTap: () async {
+                child: TextButton(
+                  onPressed: () async {
+                    debugPrint('[LoginScreen] Tombol Daftar ditekan, menuju RegisterScreen...');
                     auth.clearError();
-                    final registeredEmail = await Navigator.of(context).pushNamed<String?>('/register');
+                    final registeredEmail = await Navigator.of(context).push<String?>(
+                      MaterialPageRoute(builder: (context) => const RegisterScreen()),
+                    );
                     if (registeredEmail != null && registeredEmail.isNotEmpty) {
                       _emailController.text = registeredEmail;
                     }
                   },
-                  child: Text.rich(
-                    TextSpan(
-                      children: [
-                        const TextSpan(
-                          text: 'Belum punya akun? ',
-                          style: TextStyle(
-                            color: AppConstants.textSecondary,
-                            fontSize: 12,
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.w400,
-                          ),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    minimumSize: const Size(200, 48),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Text(
+                        'Belum punya akun? ',
+                        style: TextStyle(
+                          color: AppConstants.textSecondary,
+                          fontSize: 13,
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.w400,
                         ),
-                        const TextSpan(
-                          text: 'Daftar',
-                          style: TextStyle(
-                            color: AppConstants.primaryGreen,
-                            fontSize: 12,
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.w700,
-                          ),
+                      ),
+                      Text(
+                        'Daftar',
+                        style: TextStyle(
+                          color: AppConstants.primaryGreen,
+                          fontSize: 13,
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.w700,
+                          decoration: TextDecoration.underline,
                         ),
-                      ],
-                    ),
-                    textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
                 ),
               ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants.dart';
+import '../electricity/electricity_provider.dart';
 import 'auth_provider.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -20,6 +21,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _obscureConfirmPassword = true;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<AuthProvider>().clearError();
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _namaController.dispose();
     _emailController.dispose();
@@ -29,12 +40,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _handleRegister() async {
+    final auth = context.read<AuthProvider>();
+    if (auth.isLoading) return;
+
+    debugPrint('[RegisterScreen] Tombol Daftar ditekan');
     final nama = _namaController.text;
     final email = _emailController.text;
     final password = _passwordController.text;
     final confirmPassword = _confirmPasswordController.text;
 
-    final auth = context.read<AuthProvider>();
     final success = await auth.register(
       nama: nama,
       email: email,
@@ -45,14 +59,65 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!mounted) return;
 
     if (success) {
+      final userId = auth.currentUser!.id!;
+      await context.read<ElectricityProvider>().loadAllData(userId);
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Akun berhasil dibuat! Silakan masuk dengan email dan password Anda.'),
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text('Akun berhasil dibuat! Selamat datang, ${auth.currentUser!.nama}.'),
+              ),
+            ],
+          ),
           backgroundColor: AppConstants.primaryGreen,
-          duration: Duration(seconds: 3),
+          duration: const Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
         ),
       );
-      Navigator.of(context).pop(email);
+      // Langsung arahkan ke Dashboard
+      Navigator.of(context).pushNamedAndRemoveUntil('/dashboard', (route) => false);
+    } else {
+      if (auth.errorMessage != null) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    auth.errorMessage!,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: AppConstants.errorRed,
+            duration: const Duration(seconds: 4),
+            behavior: SnackBarBehavior.floating,
+            action: auth.errorMessage!.contains('terdaftar')
+                ? SnackBarAction(
+                    label: 'MASUK',
+                    textColor: Colors.yellowAccent,
+                    onPressed: () {
+                      Navigator.of(context).pop(_emailController.text.trim());
+                    },
+                  )
+                : null,
+          ),
+        );
+      }
     }
   }
 
@@ -203,6 +268,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 decoration: const InputDecoration(
                   hintText: 'nama@email.com',
+                  helperText: 'Contoh: budi@gmail.com',
                   prefixIcon: Icon(Icons.email_outlined, size: 18, color: AppConstants.textMuted),
                 ),
                 onChanged: (_) => auth.clearError(),
@@ -231,6 +297,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 decoration: InputDecoration(
                   hintText: 'Minimal 8 karakter',
+                  helperText: 'Minimal 8 karakter',
                   prefixIcon: const Icon(Icons.lock_outline, size: 18, color: AppConstants.textMuted),
                   suffixIcon: IconButton(
                     icon: Icon(
@@ -321,27 +388,58 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ],
 
-              const SizedBox(height: 28),
+              const SizedBox(height: 24),
+
+              // Banner error tepat di atas tombol Daftar agar selalu terlihat
+              if (auth.errorMessage != null && !isPasswordMismatch) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFEBEE),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppConstants.errorRed.withValues(alpha: 0.5)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.error_outline, size: 18, color: AppConstants.errorRed),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          auth.errorMessage!,
+                          style: const TextStyle(
+                            color: AppConstants.errorRed,
+                            fontSize: 12,
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
 
               // Tombol Daftar
               SizedBox(
                 width: double.infinity,
-                height: 44,
+                height: 48,
                 child: ElevatedButton(
-                  onPressed: auth.isLoading ? null : _handleRegister,
+                  onPressed: _handleRegister,
                   child: auth.isLoading
                       ? const SizedBox(
-                          width: 20,
-                          height: 20,
+                          width: 22,
+                          height: 22,
                           child: CircularProgressIndicator(
-                            strokeWidth: 2,
+                            strokeWidth: 2.2,
                             valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         )
                       : const Text(
                           'Daftar',
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: 14,
                             fontFamily: 'Inter',
                             fontWeight: FontWeight.w700,
                           ),

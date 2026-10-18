@@ -1,7 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 
 /// DatabaseHelper mengelola inisialisasi SQLite, relasi tabel, dan seed data tarif awal
 class DatabaseHelper {
@@ -17,6 +20,14 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDB(String filePath) async {
+    // Inisialisasi driver SQLite berdasarkan platform yang sedang berjalan
+    if (kIsWeb) {
+      databaseFactory = databaseFactoryFfiWeb;
+    } else if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+    }
+
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
