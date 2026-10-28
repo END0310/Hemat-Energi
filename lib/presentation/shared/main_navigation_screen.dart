@@ -3,6 +3,7 @@ import '../../core/constants.dart';
 import '../dashboard/dashboard_screen.dart';
 import '../electricity/history_screen.dart';
 import '../electricity/profile_screen.dart';
+import '../saving/saving_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   final int initialIndex;
@@ -39,12 +40,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         description: 'Fitur pendataan perangkat elektronik, estimasi konsumsi harian dan bulanan per alat akan dikerjakan pada modul berikutnya.',
         icon: Icons.devices_outlined,
       ),
-      _buildPlaceholderPage(
-        title: 'Penghematan',
-        subtitle: 'Modul 3: Target & Simulasi Penghematan',
-        description: 'Fitur target bulanan, simulasi hemat pemakaian perangkat, dan evaluasi hasil hemat akan dikerjakan pada modul berikutnya.',
-        icon: Icons.eco_outlined,
-      ),
+      const SavingScreen(),
       const HistoryScreen(),
     ];
 
@@ -166,7 +162,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               Container(
                 width: 72,
                 height: 72,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: AppConstants.primaryLightGreen,
                   shape: BoxShape.circle,
                 ),

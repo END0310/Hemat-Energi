@@ -12,8 +12,13 @@ val newBuildDir: Directory =
 rootProject.layout.buildDirectory.value(newBuildDir)
 
 subprojects {
-    val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
-    project.layout.buildDirectory.value(newSubprojectBuildDir)
+    // Hanya pindahkan buildDir jika berada di drive yang sama (mis. D:\).
+    // Plugin dari Pub Cache berada di C:\, sehingga jika dipaksa ke D:\ akan
+    // memicu error Gradle: "this and base files have different roots".
+    if (project.projectDir.toPath().root == rootProject.projectDir.toPath().root) {
+        val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
+        project.layout.buildDirectory.value(newSubprojectBuildDir)
+    }
 }
 subprojects {
     project.evaluationDependsOn(":app")
