@@ -19,6 +19,12 @@ import 'presentation/electricity/profile_screen.dart';
 import 'presentation/electricity/token_form_screen.dart';
 import 'presentation/electricity/token_screen.dart';
 import 'presentation/shared/main_navigation_screen.dart';
+import 'screens/add_device_screen.dart';
+import 'screens/calculator_screen.dart';
+import 'screens/device_list_screen.dart';
+import 'screens/monitoring_screen.dart';
+import 'screens/notifications_screen.dart';
+import 'services/notification_service.dart';
 
 import 'package:intl/date_symbol_data_local.dart';
 
@@ -38,6 +44,10 @@ void main() async {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }
+
+  try {
+    await NotificationService.instance.initialize();
+  } catch (_) {}
 
   runApp(const HematEnergiApp());
 }
@@ -69,6 +79,11 @@ class HematEnergiApp extends StatelessWidget {
           '/meter': (context) => const MeterScreen(),
           '/meter/form': (context) => const MeterFormScreen(),
           '/history': (context) => const HistoryScreen(),
+          '/devices': (context) => const DeviceListScreen(),
+          '/devices/add': (context) => const AddDeviceScreen(),
+          '/calculator': (context) => const CalculatorScreen(),
+          '/monitoring': (context) => const MonitoringScreen(),
+          '/notifications': (context) => const NotificationsScreen(),
         },
       ),
     );

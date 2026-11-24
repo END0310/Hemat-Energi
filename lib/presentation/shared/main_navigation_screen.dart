@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/constants.dart';
+import '../../screens/device_list_screen.dart';
 import '../dashboard/dashboard_screen.dart';
 import '../electricity/history_screen.dart';
 import '../electricity/profile_screen.dart';
@@ -34,12 +35,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     final List<Widget> pages = [
       DashboardScreen(onTabChange: _onTabTapped),
       const ProfileScreen(),
-      _buildPlaceholderPage(
-        title: 'Perangkat',
-        subtitle: 'Modul 2: Monitoring Konsumsi Perangkat',
-        description: 'Fitur pendataan perangkat elektronik, estimasi konsumsi harian dan bulanan per alat akan dikerjakan pada modul berikutnya.',
-        icon: Icons.devices_outlined,
-      ),
+      const DeviceListScreen(),
       const SavingScreen(),
       const HistoryScreen(),
     ];
@@ -111,105 +107,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPlaceholderPage({
-    required String title,
-    required String subtitle,
-    required String description,
-    required IconData icon,
-  }) {
-    return Scaffold(
-      backgroundColor: AppConstants.background,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(64),
-        child: Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            border: Border(
-              bottom: BorderSide(color: AppConstants.borderLight, width: 1),
-            ),
-          ),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 18),
-              child: Row(
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      color: AppConstants.textPrimary,
-                      fontSize: 18,
-                      fontFamily: 'Inter',
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(28.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 72,
-                height: 72,
-                decoration: const BoxDecoration(
-                  color: AppConstants.primaryLightGreen,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, color: AppConstants.primaryGreen, size: 36),
-              ),
-              const SizedBox(height: 18),
-              Text(
-                subtitle,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontFamily: 'Inter',
-                  fontWeight: FontWeight.w700,
-                  color: AppConstants.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                description,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontFamily: 'Inter',
-                  color: AppConstants.textSecondary,
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F2),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppConstants.border),
-                ),
-                child: const Text(
-                  'Segera hadir (Anggota tim lain)',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontFamily: 'Inter',
-                    color: AppConstants.textSecondary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );
