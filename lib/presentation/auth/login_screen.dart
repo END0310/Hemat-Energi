@@ -162,9 +162,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 16),
               ],
 
-              // Email field
+              // Email / Username field
               const Text(
-                'Email',
+                'Email atau Username',
                 style: TextStyle(
                   color: AppConstants.textPrimary,
                   fontSize: 12,
@@ -175,7 +175,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 6),
               TextField(
                 controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
+                keyboardType: TextInputType.text,
                 style: const TextStyle(
                   color: AppConstants.textPrimary,
                   fontSize: 13,
@@ -183,8 +183,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   fontWeight: FontWeight.w600,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'nama@email.com',
-                  prefixIcon: const Icon(Icons.email_outlined, size: 18, color: AppConstants.textMuted),
+                  hintText: 'nama@email.com atau username',
+                  prefixIcon: const Icon(Icons.person_outline, size: 18, color: AppConstants.textMuted),
                 ),
                 onChanged: (_) => auth.clearError(),
               ),

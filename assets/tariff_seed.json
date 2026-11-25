@@ -1,56 +1,32 @@
 [
   {
-    "_note": "PLACEHOLDER - ganti dengan tarif resmi PLN",
-    "kategori": "Rumah Tangga R-1",
-    "daya": 450,
-    "tarif": 415.00
-  },
-  {
-    "_note": "PLACEHOLDER - ganti dengan tarif resmi PLN",
-    "kategori": "Rumah Tangga R-1",
+    "kategori": "Rumah Tangga R-1/TR",
     "daya": 900,
     "tarif": 1352.00
   },
   {
-    "_note": "PLACEHOLDER - ganti dengan tarif resmi PLN",
-    "kategori": "Rumah Tangga R-1",
+    "kategori": "Rumah Tangga R-1/TR",
     "daya": 1300,
     "tarif": 1444.70
   },
   {
-    "_note": "PLACEHOLDER - ganti dengan tarif resmi PLN",
-    "kategori": "Rumah Tangga R-1",
+    "kategori": "Rumah Tangga R-1/TR",
     "daya": 2200,
     "tarif": 1444.70
   },
   {
-    "_note": "PLACEHOLDER - ganti dengan tarif resmi PLN",
-    "kategori": "Rumah Tangga R-2",
+    "kategori": "Rumah Tangga R-2/TR",
     "daya": 3500,
     "tarif": 1699.53
   },
   {
-    "_note": "PLACEHOLDER - ganti dengan tarif resmi PLN",
-    "kategori": "Rumah Tangga R-2",
+    "kategori": "Rumah Tangga R-2/TR",
     "daya": 5500,
     "tarif": 1699.53
   },
   {
-    "_note": "PLACEHOLDER - ganti dengan tarif resmi PLN",
-    "kategori": "Bisnis B-1",
-    "daya": 450,
-    "tarif": 535.00
-  },
-  {
-    "_note": "PLACEHOLDER - ganti dengan tarif resmi PLN",
-    "kategori": "Bisnis B-1",
-    "daya": 900,
-    "tarif": 630.00
-  },
-  {
-    "_note": "PLACEHOLDER - ganti dengan tarif resmi PLN",
-    "kategori": "Bisnis B-1",
-    "daya": 1300,
-    "tarif": 966.00
+    "kategori": "Rumah Tangga R-3/TR",
+    "daya": 6600,
+    "tarif": 1699.53
   }
 ]

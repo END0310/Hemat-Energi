@@ -46,3 +46,12 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Backend & Environment Secrets (PRD v3.1)
+.env
+.env.*
+!.env.example
+node_modules/
+backend/node_modules/
+backend/uploads/*
+!backend/uploads/.gitkeep

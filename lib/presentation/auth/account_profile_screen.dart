@@ -119,6 +119,19 @@ class AccountProfileScreen extends StatelessWidget {
                       ],
                     ),
                   ),
+                  TextButton.icon(
+                    onPressed: () => _showEditNameDialog(context, user?.nama ?? ''),
+                    icon: const Icon(Icons.edit_outlined, size: 16, color: AppConstants.primaryGreen),
+                    label: const Text(
+                      'Ubah',
+                      style: TextStyle(
+                        color: AppConstants.primaryGreen,
+                        fontSize: 12,
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -203,6 +216,48 @@ class AccountProfileScreen extends StatelessWidget {
                       _showNotificationSettings(context);
                     },
                   ),
+                  const Divider(height: 1, color: AppConstants.borderLight),
+                  ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    leading: Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: AppConstants.primaryLightGreen,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.science_outlined, color: AppConstants.primaryGreen, size: 20),
+                    ),
+                    title: const Text(
+                      'Isi / Reset Data Contoh (Dummy)',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: AppConstants.textPrimary,
+                      ),
+                    ),
+                    subtitle: const Text(
+                      'Muat contoh profil, token, & catatan meter untuk uji coba',
+                      style: TextStyle(fontSize: 11, color: AppConstants.textSecondary),
+                    ),
+                    trailing: const Icon(Icons.chevron_right, color: AppConstants.textMuted),
+                    onTap: () async {
+                      if (user?.id == null) return;
+                      final ok = await context.read<ElectricityProvider>().seedDummyDataForUser(user!.id!);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              ok
+                                  ? 'Data contoh Modul 1 berhasil dimuat!'
+                                  : 'Gagal memuat data contoh.',
+                            ),
+                            backgroundColor: ok ? AppConstants.primaryGreen : AppConstants.errorRed,
+                          ),
+                        );
+                      }
+                    },
+                  ),
                 ],
               ),
             ),
@@ -282,6 +337,66 @@ class AccountProfileScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showEditNameDialog(BuildContext context, String currentName) {
+    final controller = TextEditingController(text: currentName);
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        title: const Text(
+          'Ubah Nama Profil',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          textCapitalization: TextCapitalization.words,
+          decoration: const InputDecoration(
+            labelText: 'Nama lengkap',
+            hintText: 'Masukkan nama baru',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              minimumSize: const Size(90, 36),
+            ),
+            onPressed: () async {
+              final newName = controller.text.trim();
+              if (newName.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Nama tidak boleh kosong.'),
+                    backgroundColor: AppConstants.errorRed,
+                  ),
+                );
+                return;
+              }
+              Navigator.of(dialogCtx).pop();
+              final success = await context.read<AuthProvider>().updateProfileName(newName);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      success
+                          ? 'Nama profil berhasil diperbarui!'
+                          : (context.read<AuthProvider>().errorMessage ?? 'Gagal memperbarui nama.'),
+                    ),
+                    backgroundColor: success ? AppConstants.primaryGreen : AppConstants.errorRed,
+                  ),
+                );
+              }
+            },
+            child: const Text('Simpan'),
+          ),
+        ],
       ),
     );
   }

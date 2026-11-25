@@ -56,6 +56,20 @@ class ElectricityProfileRepository {
     }
   }
 
+  /// Hapus / reset profil listrik pengguna (FR-01 Delete)
+  Future<int> deleteProfile(int userId) async {
+    try {
+      final db = await _dbHelper.database;
+      return await db.delete(
+        'electricity_profiles',
+        where: 'user_id = ?',
+        whereArgs: [userId],
+      );
+    } catch (e) {
+      throw Exception('Gagal menghapus profil listrik: $e');
+    }
+  }
+
   /// Cari tarif berdasarkan kategori dan daya dari tariff_configs
   Future<double?> lookupTariff(String kategori, int daya) async {
     try {

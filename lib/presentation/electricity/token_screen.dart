@@ -4,19 +4,57 @@ import '../../core/constants.dart';
 import '../../core/formatters.dart';
 import '../../data/models/token_purchase.dart';
 import '../auth/auth_provider.dart';
+import '../shared/scroll_date_range_picker.dart';
 import 'electricity_provider.dart';
 import 'token_form_screen.dart';
 
-class TokenScreen extends StatelessWidget {
+class TokenScreen extends StatefulWidget {
   const TokenScreen({super.key});
+
+  @override
+  State<TokenScreen> createState() => _TokenScreenState();
+}
+
+class _TokenScreenState extends State<TokenScreen> {
+  DateTimeRange? _selectedDateRange;
+
+  Future<void> _pickDateRange() async {
+    final picked = await ScrollDateRangePicker.show(
+      context,
+      initialRange: _selectedDateRange,
+    );
+
+    if (picked != null && mounted) {
+      setState(() {
+        _selectedDateRange = picked;
+      });
+    }
+  }
+
+  List<TokenPurchase> _applyDateFilter(List<TokenPurchase> allTokens) {
+    final range = _selectedDateRange;
+    if (range == null) return allTokens;
+
+    final startOfDay = DateTime(range.start.year, range.start.month, range.start.day);
+    final endOfDay = DateTime(range.end.year, range.end.month, range.end.day, 23, 59, 59);
+
+    return allTokens.where((t) {
+      return !t.tanggalWaktu.isBefore(startOfDay) && !t.tanggalWaktu.isAfter(endOfDay);
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
     final electricity = context.watch<ElectricityProvider>();
-    final tokens = electricity.tokenPurchases;
+    final allTokens = electricity.tokenPurchases;
+    final filteredTokens = _applyDateFilter(allTokens);
     final summary = electricity.monthlyTokenSummary;
+    final allTimeSummary = electricity.allTimeTokenSummary;
     final latestReading = electricity.latestMeterReading;
     final remainingDays = electricity.remainingDays;
+
+    final filteredNominal = filteredTokens.fold<double>(0.0, (sum, t) => sum + t.nominal);
+    final filteredKwh = filteredTokens.fold<double>(0.0, (sum, t) => sum + t.kwhToken);
 
     return Scaffold(
       backgroundColor: AppConstants.background,
@@ -128,7 +166,7 @@ class TokenScreen extends StatelessWidget {
             ),
             const SizedBox(height: 14),
 
-            // Card Ringkasan Bulan Ini
+            // Card Ringkasan Bulan Ini & Total Pengeluaran (FR-04)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
@@ -136,101 +174,225 @@ class TokenScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: AppConstants.border),
               ),
-              child: Row(
+              child: Column(
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Bulan ini',
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Bulan ini',
+                              style: TextStyle(
+                                color: AppConstants.textSecondary,
+                                fontSize: 11,
+                                fontFamily: 'Inter',
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              AppFormatters.formatRupiah(summary['total_nominal'] as num),
+                              style: const TextStyle(
+                                color: AppConstants.textPrimary,
+                                fontSize: 14,
+                                fontFamily: 'Inter',
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '${summary['count']} pembelian',
+                              style: const TextStyle(
+                                color: AppConstants.textSecondary,
+                                fontSize: 10,
+                                fontFamily: 'Inter',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        width: 1,
+                        height: 42,
+                        color: AppConstants.borderLight,
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Token masuk (bulan ini)',
+                              style: TextStyle(
+                                color: AppConstants.textSecondary,
+                                fontSize: 11,
+                                fontFamily: 'Inter',
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${AppFormatters.formatKwh(summary['total_kwh'] as double)} kWh',
+                              style: const TextStyle(
+                                color: AppConstants.textPrimary,
+                                fontSize: 14,
+                                fontFamily: 'Inter',
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            const Text(
+                              'Bulan berjalan',
+                              style: TextStyle(
+                                color: AppConstants.textSecondary,
+                                fontSize: 10,
+                                fontFamily: 'Inter',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    child: Divider(height: 1, color: AppConstants.borderLight),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'Total seluruh pengeluaran',
                           style: TextStyle(
                             color: AppConstants.textSecondary,
                             fontSize: 11,
                             fontFamily: 'Inter',
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          AppFormatters.formatRupiah(summary['total_nominal'] as num),
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          '${AppFormatters.formatRupiah(allTimeSummary['total_nominal'] as num)} '
+                          '(${AppFormatters.formatKwh(allTimeSummary['total_kwh'] as double)} kWh)',
+                          textAlign: TextAlign.right,
                           style: const TextStyle(
-                            color: AppConstants.textPrimary,
-                            fontSize: 14,
+                            color: AppConstants.primaryDarkGreen,
+                            fontSize: 12,
                             fontFamily: 'Inter',
                             fontWeight: FontWeight.w700,
                           ),
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${summary['count']} pembelian',
-                          style: const TextStyle(
-                            color: AppConstants.textSecondary,
-                            fontSize: 10,
-                            fontFamily: 'Inter',
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    width: 1,
-                    height: 42,
-                    color: AppConstants.borderLight,
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Token masuk',
-                          style: TextStyle(
-                            color: AppConstants.textSecondary,
-                            fontSize: 11,
-                            fontFamily: 'Inter',
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${AppFormatters.formatKwh(summary['total_kwh'] as double)} kWh',
-                          style: const TextStyle(
-                            color: AppConstants.textPrimary,
-                            fontSize: 14,
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        const Text(
-                          'Bulan berjalan',
-                          style: TextStyle(
-                            color: AppConstants.textSecondary,
-                            fontSize: 10,
-                            fontFamily: 'Inter',
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 24),
 
-            // Riwayat Pembelian Title
-            const Text(
-              'Riwayat pembelian',
-              style: TextStyle(
-                color: AppConstants.textPrimary,
-                fontSize: 14,
-                fontFamily: 'Inter',
-                fontWeight: FontWeight.w700,
-              ),
+            // Header Riwayat Pembelian + Tombol Scroll Filter Rentang Tanggal (FR-04)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Riwayat pembelian',
+                    style: TextStyle(
+                      color: AppConstants.textPrimary,
+                      fontSize: 14,
+                      fontFamily: 'Inter',
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                OutlinedButton.icon(
+                  onPressed: _pickDateRange,
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(0, 34),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    side: BorderSide(
+                      color: _selectedDateRange != null
+                          ? AppConstants.primaryGreen
+                          : AppConstants.border,
+                    ),
+                    backgroundColor: _selectedDateRange != null
+                        ? AppConstants.primaryLightGreen
+                        : Colors.white,
+                  ),
+                  icon: Icon(
+                    Icons.date_range_outlined,
+                    size: 15,
+                    color: _selectedDateRange != null
+                        ? AppConstants.primaryDarkGreen
+                        : AppConstants.textSecondary,
+                  ),
+                  label: Text(
+                    _selectedDateRange == null
+                        ? 'Filter tanggal'
+                        : '${AppFormatters.formatDateShort(_selectedDateRange!.start)} – ${AppFormatters.formatDateShort(_selectedDateRange!.end)}',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontFamily: 'Inter',
+                      fontWeight: FontWeight.w600,
+                      color: _selectedDateRange != null
+                          ? AppConstants.primaryDarkGreen
+                          : AppConstants.textSecondary,
+                    ),
+                  ),
+                ),
+              ],
             ),
+
+            // Info ringkasan hasil filter rentang tanggal jika aktif
+            if (_selectedDateRange != null) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppConstants.primaryLightGreen,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Hasil filter (${filteredTokens.length} transaksi): '
+                        '${AppFormatters.formatRupiah(filteredNominal)} • '
+                        '+${AppFormatters.formatKwh(filteredKwh)} kWh',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.w600,
+                          color: AppConstants.primaryDarkGreen,
+                        ),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () => setState(() => _selectedDateRange = null),
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                        child: Text(
+                          'Reset',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.w700,
+                            color: AppConstants.errorRed,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 12),
 
             // Daftar Transaksi Token
-            if (tokens.isEmpty)
+            if (filteredTokens.isEmpty)
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
@@ -240,22 +402,27 @@ class TokenScreen extends StatelessWidget {
                   border: Border.all(color: AppConstants.border),
                 ),
                 child: Column(
-                  children: const [
-                    Icon(Icons.receipt_long_outlined, size: 40, color: AppConstants.textMuted),
-                    SizedBox(height: 8),
+                  children: [
+                    const Icon(Icons.receipt_long_outlined, size: 40, color: AppConstants.textMuted),
+                    const SizedBox(height: 8),
                     Text(
-                      'Belum ada pembelian token',
-                      style: TextStyle(
+                      _selectedDateRange != null
+                          ? 'Tidak ada transaksi pada rentang tanggal ini'
+                          : 'Belum ada pembelian token',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         color: AppConstants.textPrimary,
                         fontSize: 13,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
-                      'Ketuk tombol "+ Tambah Token" di bawah untuk mulai mencatat.',
+                      _selectedDateRange != null
+                          ? 'Coba ubah atau tekan Reset pada filter tanggal di atas.'
+                          : 'Ketuk tombol "+ Tambah Token" di bawah untuk mulai mencatat.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: AppConstants.textSecondary, fontSize: 11),
+                      style: const TextStyle(color: AppConstants.textSecondary, fontSize: 11),
                     ),
                   ],
                 ),
@@ -264,10 +431,10 @@ class TokenScreen extends StatelessWidget {
               ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: tokens.length,
+                itemCount: filteredTokens.length,
                 separatorBuilder: (_, _) => const SizedBox(height: 10),
                 itemBuilder: (context, index) {
-                  final token = tokens[index];
+                  final token = filteredTokens[index];
                   return Container(
                     decoration: BoxDecoration(
                       color: Colors.white,

@@ -246,9 +246,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Field Email
+              // Field Email atau Username
               const Text(
-                'Email',
+                'Email atau Username',
                 style: TextStyle(
                   color: AppConstants.textPrimary,
                   fontSize: 12,
@@ -259,7 +259,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 6),
               TextField(
                 controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
+                keyboardType: TextInputType.text,
                 style: const TextStyle(
                   color: AppConstants.textPrimary,
                   fontSize: 13,
@@ -267,9 +267,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   fontWeight: FontWeight.w600,
                 ),
                 decoration: const InputDecoration(
-                  hintText: 'nama@email.com',
-                  helperText: 'Contoh: budi@gmail.com',
-                  prefixIcon: Icon(Icons.email_outlined, size: 18, color: AppConstants.textMuted),
+                  hintText: 'nama@email.com atau username',
+                  helperText: 'Contoh: budi@gmail.com atau budi_kos',
+                  prefixIcon: Icon(Icons.alternate_email, size: 18, color: AppConstants.textMuted),
                 ),
                 onChanged: (_) => auth.clearError(),
               ),

@@ -66,30 +66,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Halo, ${user?.nama.split(" ").first ?? "Pengguna"}',
-                          style: const TextStyle(
-                            color: AppConstants.textPrimary,
-                            fontSize: 19,
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: -0.38,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Halo, ${user?.nama.split(" ").first ?? "Pengguna"}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: AppConstants.textPrimary,
+                              fontSize: 19,
+                              fontFamily: 'Inter',
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.38,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          AppFormatters.formatHeaderDate(DateTime.now()),
-                          style: const TextStyle(
-                            color: AppConstants.textSecondary,
-                            fontSize: 12,
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.w400,
+                          const SizedBox(height: 2),
+                          Text(
+                            AppFormatters.formatHeaderDate(DateTime.now()),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: AppConstants.textSecondary,
+                              fontSize: 12,
+                              fontFamily: 'Inter',
+                              fontWeight: FontWeight.w400,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                     Row(
                       children: [
@@ -212,6 +218,61 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const SizedBox(height: 14),
                 ],
 
+                // Tombol Praktis Muat Data Contoh (Dummy) jika data masih kosong
+                if (latestReading == null && user?.id != null) ...[
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: AppConstants.primaryLightGreen,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppConstants.primaryGreen.withValues(alpha: 0.25)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.science_outlined, color: AppConstants.primaryDarkGreen, size: 20),
+                        const SizedBox(width: 10),
+                        const Expanded(
+                          child: Text(
+                            'Ingin langsung mencoba grafik, filter tanggal, dan notifikasi?',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontFamily: 'Inter',
+                              fontWeight: FontWeight.w600,
+                              color: AppConstants.primaryDarkGreen,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(0, 32),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          ),
+                          onPressed: electricity.isLoading
+                              ? null
+                              : () async {
+                                  await electricity.seedDummyDataForUser(user!.id!);
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Data contoh Modul 1 berhasil dimuat!'),
+                                        backgroundColor: AppConstants.primaryGreen,
+                                      ),
+                                    );
+                                  }
+                                },
+                          child: const Text(
+                            'Isi Data Dummy',
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+
                 // 2. Card Saldo Hijau Figma (Height 138)
                 Container(
                   width: double.infinity,
@@ -315,40 +376,53 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            children: [
-                              Opacity(
-                                opacity: 0.85,
-                                child: const Icon(Icons.access_time, size: 14, color: Colors.white),
-                              ),
-                              const SizedBox(width: 4),
-                              Opacity(
-                                opacity: 0.85,
-                                child: Text(
-                                  remainingDays != null
-                                      ? 'Cukup ± ${AppFormatters.formatKwh(remainingDays)} hari'
-                                      : 'Belum cukup data',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 11,
-                                    fontFamily: 'Inter',
-                                    fontWeight: FontWeight.w400,
+                          Flexible(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Opacity(
+                                  opacity: 0.85,
+                                  child: const Icon(Icons.access_time, size: 14, color: Colors.white),
+                                ),
+                                const SizedBox(width: 4),
+                                Flexible(
+                                  child: Opacity(
+                                    opacity: 0.85,
+                                    child: Text(
+                                      remainingDays != null
+                                          ? 'Cukup ± ${AppFormatters.formatKwh(remainingDays)} hari'
+                                          : 'Belum cukup data',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 11,
+                                        fontFamily: 'Inter',
+                                        fontWeight: FontWeight.w400,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                          Opacity(
-                            opacity: 0.85,
-                            child: Text(
-                              latestReading != null
-                                  ? 'Diperbarui ${AppFormatters.formatTimeOnly(latestReading.tanggalWaktu)}'
-                                  : 'Belum ada catatan',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 11,
-                                fontFamily: 'Inter',
-                                fontWeight: FontWeight.w400,
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Opacity(
+                              opacity: 0.85,
+                              child: Text(
+                                latestReading != null
+                                    ? 'Diperbarui ${AppFormatters.formatTimeOnly(latestReading.tanggalWaktu)}'
+                                    : 'Belum ada catatan',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.right,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontFamily: 'Inter',
+                                  fontWeight: FontWeight.w400,
+                                ),
                               ),
                             ),
                           ),
@@ -359,7 +433,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                // 3. Tombol Tambah Token & Catat Meter
+                // 3. Tombol Tambah Token & Catat Meter (bebas overflow di layar kecil)
                 Row(
                   children: [
                     // Tambah Token
@@ -372,7 +446,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         },
                         borderRadius: BorderRadius.circular(13),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(13),
@@ -389,30 +463,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 ),
                                 child: const Icon(Icons.confirmation_number_outlined, color: AppConstants.primaryGreen, size: 18),
                               ),
-                              const SizedBox(width: 10),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: const [
-                                  Text(
-                                    'Tambah token',
-                                    style: TextStyle(
-                                      color: AppConstants.textPrimary,
-                                      fontSize: 12,
-                                      fontFamily: 'Inter',
-                                      fontWeight: FontWeight.w700,
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: const [
+                                    Text(
+                                      'Tambah token',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color: AppConstants.textPrimary,
+                                        fontSize: 12,
+                                        fontFamily: 'Inter',
+                                        fontWeight: FontWeight.w700,
+                                      ),
                                     ),
-                                  ),
-                                  SizedBox(height: 2),
-                                  Text(
-                                    'Catat pembelian',
-                                    style: TextStyle(
-                                      color: AppConstants.textSecondary,
-                                      fontSize: 11,
-                                      fontFamily: 'Inter',
-                                      fontWeight: FontWeight.w400,
+                                    SizedBox(height: 2),
+                                    Text(
+                                      'Catat pembelian',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color: AppConstants.textSecondary,
+                                        fontSize: 11,
+                                        fontFamily: 'Inter',
+                                        fontWeight: FontWeight.w400,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ],
                           ),
@@ -431,7 +511,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         },
                         borderRadius: BorderRadius.circular(13),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(13),
@@ -448,30 +528,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 ),
                                 child: const Icon(Icons.speed_outlined, color: AppConstants.primaryGreen, size: 18),
                               ),
-                              const SizedBox(width: 10),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: const [
-                                  Text(
-                                    'Catat meter',
-                                    style: TextStyle(
-                                      color: AppConstants.textPrimary,
-                                      fontSize: 12,
-                                      fontFamily: 'Inter',
-                                      fontWeight: FontWeight.w700,
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: const [
+                                    Text(
+                                      'Catat meter',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color: AppConstants.textPrimary,
+                                        fontSize: 12,
+                                        fontFamily: 'Inter',
+                                        fontWeight: FontWeight.w700,
+                                      ),
                                     ),
-                                  ),
-                                  SizedBox(height: 2),
-                                  Text(
-                                    'Perbarui saldo',
-                                    style: TextStyle(
-                                      color: AppConstants.textSecondary,
-                                      fontSize: 11,
-                                      fontFamily: 'Inter',
-                                      fontWeight: FontWeight.w400,
+                                    SizedBox(height: 2),
+                                    Text(
+                                      'Perbarui saldo',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color: AppConstants.textSecondary,
+                                        fontSize: 11,
+                                        fontFamily: 'Inter',
+                                        fontWeight: FontWeight.w400,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ],
                           ),
@@ -620,28 +706,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   children: const [
                     Icon(Icons.trending_down, size: 16, color: AppConstants.primaryGreen),
                     SizedBox(width: 6),
-                    Text.rich(
-                      TextSpan(
-                        children: [
-                          TextSpan(
-                            text: 'Pola konsumsi ',
-                            style: TextStyle(
-                              color: AppConstants.primaryGreen,
-                              fontSize: 11,
-                              fontFamily: 'Inter',
-                              fontWeight: FontWeight.w700,
+                    Expanded(
+                      child: Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text: 'Pola konsumsi ',
+                              style: TextStyle(
+                                color: AppConstants.primaryGreen,
+                                fontSize: 11,
+                                fontFamily: 'Inter',
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
-                          ),
-                          TextSpan(
-                            text: 'berdasarkan catatan meter aktual',
-                            style: TextStyle(
-                              color: AppConstants.textSecondary,
-                              fontSize: 11,
-                              fontFamily: 'Inter',
-                              fontWeight: FontWeight.w400,
+                            TextSpan(
+                              text: 'berdasarkan catatan meter aktual',
+                              style: TextStyle(
+                                color: AppConstants.textSecondary,
+                                fontSize: 11,
+                                fontFamily: 'Inter',
+                                fontWeight: FontWeight.w400,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ],

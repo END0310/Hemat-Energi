@@ -57,4 +57,19 @@ class UserRepository {
       throw Exception('Gagal memuat profil pengguna: $e');
     }
   }
+
+  /// Ubah nama profil pengguna berdasarkan ID (AUTH-04)
+  Future<int> updateUserName(int id, String nama) async {
+    try {
+      final db = await _dbHelper.database;
+      return await db.update(
+        'users',
+        {'nama': nama.trim()},
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    } catch (e) {
+      throw Exception('Gagal memperbarui nama pengguna: $e');
+    }
+  }
 }

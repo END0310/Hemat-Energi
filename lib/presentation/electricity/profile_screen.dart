@@ -98,29 +98,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(width: 14),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Listrik kamar kos',
-                        style: TextStyle(
-                          color: AppConstants.textPrimary,
-                          fontSize: 14,
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.w700,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Listrik kamar kos',
+                          style: TextStyle(
+                            color: AppConstants.textPrimary,
+                            fontSize: 14,
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        profile?.jenisListrik ?? 'Prabayar / Token',
-                        style: const TextStyle(
-                          color: AppConstants.textSecondary,
-                          fontSize: 12,
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.w400,
+                        const SizedBox(height: 3),
+                        Text(
+                          profile?.jenisListrik ?? 'Prabayar / Token',
+                          style: const TextStyle(
+                            color: AppConstants.textSecondary,
+                            fontSize: 12,
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.w400,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -159,6 +161,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
             ),
+            if (profile != null) ...[
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: () => _confirmResetProfile(context),
+                  icon: const Icon(Icons.restart_alt, size: 16, color: AppConstants.errorRed),
+                  label: const Text(
+                    'Reset / Hapus Profil Listrik',
+                    style: TextStyle(
+                      color: AppConstants.errorRed,
+                      fontSize: 12,
+                      fontFamily: 'Inter',
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 16),
 
             // Info Box Tarif Otomatis PLN
@@ -242,22 +263,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: AppConstants.textSecondary,
-              fontSize: 12,
-              fontFamily: 'Inter',
-              fontWeight: FontWeight.w400,
+          Flexible(
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: AppConstants.textSecondary,
+                fontSize: 12,
+                fontFamily: 'Inter',
+                fontWeight: FontWeight.w400,
+              ),
             ),
           ),
-          Text(
-            value,
-            style: TextStyle(
-              color: AppConstants.textPrimary,
-              fontSize: 13,
-              fontFamily: 'Inter',
-              fontWeight: isTariff ? FontWeight.w700 : FontWeight.w600,
+          const SizedBox(width: 10),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                color: AppConstants.textPrimary,
+                fontSize: 13,
+                fontFamily: 'Inter',
+                fontWeight: isTariff ? FontWeight.w700 : FontWeight.w600,
+              ),
             ),
           ),
         ],
@@ -320,6 +347,53 @@ class _ProfileScreenState extends State<ProfileScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (_) => const _EditProfileForm(),
+    );
+  }
+
+  void _confirmResetProfile(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        title: const Text(
+          'Reset Profil Listrik?',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        content: const Text(
+          'Pengaturan golongan dan daya listrik akan dihapus (riwayat token dan catatan meter Anda tidak ikut terhapus). Anda dapat mengaturnya kembali kapan saja.',
+          style: TextStyle(fontSize: 13, height: 1.45),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppConstants.errorRed,
+              minimumSize: const Size(90, 36),
+            ),
+            onPressed: () async {
+              Navigator.of(dialogCtx).pop();
+              final userId = context.read<AuthProvider>().currentUser?.id;
+              if (userId == null) return;
+              final success = await context.read<ElectricityProvider>().deleteProfile(userId);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      success
+                          ? 'Profil listrik berhasil direset.'
+                          : 'Gagal mereset profil listrik.',
+                    ),
+                    backgroundColor: success ? AppConstants.primaryGreen : AppConstants.errorRed,
+                  ),
+                );
+              }
+            },
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
     );
   }
 }

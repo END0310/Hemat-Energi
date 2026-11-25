@@ -43,10 +43,11 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 4,
       onConfigure: _onConfigure,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
+      onOpen: _onOpen,
     );
   }
 
@@ -56,79 +57,108 @@ class DatabaseHelper {
   }
 
   Future<void> _onCreate(Database db, int version) async {
-    try {
-      // 1. Tabel users (Modul 1)
-      await db.execute('''
-        CREATE TABLE users (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          nama TEXT NOT NULL,
-          email TEXT UNIQUE NOT NULL,
-          password_hash TEXT NOT NULL,
-          salt TEXT NOT NULL
-        );
-      ''');
-
-      // 2. Tabel electricity_profiles (relasi 1:1 dengan user - Modul 1)
-      await db.execute('''
-        CREATE TABLE electricity_profiles (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          user_id INTEGER UNIQUE NOT NULL,
-          kategori TEXT NOT NULL,
-          daya INTEGER NOT NULL,
-          jenis_listrik TEXT NOT NULL DEFAULT 'Prabayar/Token',
-          saldo_awal_kwh REAL,
-          FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
-        );
-      ''');
-
-      // 3. Tabel tariff_configs (lookup tarif resmi PLN - Modul 1)
-      await db.execute('''
-        CREATE TABLE tariff_configs (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          kategori TEXT NOT NULL,
-          daya INTEGER NOT NULL,
-          tarif REAL NOT NULL
-        );
-      ''');
-
-      // 4. Tabel token_purchases (relasi 1:N dengan user - Modul 1)
-      await db.execute('''
-        CREATE TABLE token_purchases (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          user_id INTEGER NOT NULL,
-          tanggal_waktu TEXT NOT NULL,
-          nominal REAL NOT NULL,
-          kwh_token REAL NOT NULL,
-          FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
-        );
-      ''');
-
-      // 5. Tabel meter_readings (relasi 1:N dengan user - Modul 1)
-      await db.execute('''
-        CREATE TABLE meter_readings (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          user_id INTEGER NOT NULL,
-          tanggal_waktu TEXT NOT NULL,
-          saldo_kwh REAL NOT NULL,
-          foto_path TEXT,
-          FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
-        );
-      ''');
-
-      // 6. Tabel devices & notifikasi (Modul 2)
-      await _createModule2Tables(db);
-
-      // Seed data tarif dari assets/tariff_seed.json
-      await _seedTariffs(db);
-    } catch (e) {
-      rethrow;
-    }
+    await _ensureCoreTables(db);
+    await _createModule2Tables(db);
+    await _seedTariffs(db);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 2) {
-      await _createModule2Tables(db);
+    await _migrateLegacyModule2TablesIfNeeded(db);
+    await _ensureCoreTables(db);
+    await _createModule2Tables(db);
+    if (oldVersion < 4) {
+      await db.delete('tariff_configs');
+      await _seedTariffs(db);
     }
+  }
+
+  Future<void> _onOpen(Database db) async {
+    await _migrateLegacyModule2TablesIfNeeded(db);
+    await _ensureCoreTables(db);
+    await _createModule2Tables(db);
+    final countRes = await db.rawQuery('SELECT COUNT(*) as count FROM tariff_configs');
+    final count = Sqflite.firstIntValue(countRes) ?? 0;
+    if (count == 0) {
+      await _seedTariffs(db);
+    }
+  }
+
+  /// Jika di emulator/HP masih tersisa database versi lama dari branch modul-2
+  /// (yang belum memiliki tabel users/tariff_configs dan nama kolom berbeda),
+  /// bersihkan tabel lama yang tidak kompatibel agar skema gabungan terbentuk rapi.
+  Future<void> _migrateLegacyModule2TablesIfNeeded(Database db) async {
+    await db.execute('DROP TABLE IF EXISTS tariff_configurations;');
+    await db.execute('DROP TABLE IF EXISTS electricity_profile;');
+
+    final meterCols = await db.rawQuery('PRAGMA table_info(meter_readings);');
+    if (meterCols.isNotEmpty && !meterCols.any((c) => c['name'] == 'tanggal_waktu')) {
+      await db.execute('DROP TABLE IF EXISTS meter_readings;');
+    }
+
+    final tokenCols = await db.rawQuery('PRAGMA table_info(token_purchases);');
+    if (tokenCols.isNotEmpty && !tokenCols.any((c) => c['name'] == 'tanggal_waktu')) {
+      await db.execute('DROP TABLE IF EXISTS token_purchases;');
+    }
+  }
+
+  Future<void> _ensureCoreTables(Database db) async {
+    // 1. Tabel users (Modul 1)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nama TEXT NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        password_hash TEXT NOT NULL,
+        salt TEXT NOT NULL
+      );
+    ''');
+
+    // 2. Tabel electricity_profiles (relasi 1:1 dengan user - Modul 1)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS electricity_profiles (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER UNIQUE NOT NULL,
+        kategori TEXT NOT NULL,
+        daya INTEGER NOT NULL,
+        jenis_listrik TEXT NOT NULL DEFAULT 'Prabayar/Token',
+        saldo_awal_kwh REAL,
+        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+      );
+    ''');
+
+    // 3. Tabel tariff_configs (lookup tarif resmi PLN - Modul 1)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS tariff_configs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        kategori TEXT NOT NULL,
+        daya INTEGER NOT NULL,
+        tarif REAL NOT NULL
+      );
+    ''');
+
+    // 4. Tabel token_purchases (relasi 1:N dengan user - Modul 1)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS token_purchases (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        tanggal_waktu TEXT NOT NULL,
+        nominal REAL NOT NULL,
+        kwh_token REAL NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+      );
+    ''');
+
+    // 5. Tabel meter_readings (relasi 1:N dengan user - Modul 1)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS meter_readings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        tanggal_waktu TEXT NOT NULL,
+        saldo_kwh REAL NOT NULL,
+        foto_path TEXT,
+        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+      );
+    ''');
   }
 
   Future<void> _createModule2Tables(Database db) async {

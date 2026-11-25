@@ -50,7 +50,7 @@ class AuthService {
     final cleanEmail = email.trim().toLowerCase();
     final existingUser = await _userRepository.getUserByEmail(cleanEmail);
     if (existingUser != null) {
-      throw Exception('Email sudah terdaftar di perangkat ini.');
+      throw Exception('Email atau username sudah terdaftar.');
     }
 
     final salt = generateSalt();
@@ -107,6 +107,23 @@ class AuthService {
     final userId = await getSessionUserId();
     if (userId == null) return null;
     return await _userRepository.getUserById(userId);
+  }
+
+  /// Perbarui nama profil pengguna yang sedang login (AUTH-04)
+  Future<User> updateUserName({
+    required int userId,
+    required String nama,
+  }) async {
+    final cleanNama = nama.trim();
+    if (cleanNama.isEmpty) {
+      throw Exception('Nama lengkap tidak boleh kosong.');
+    }
+    await _userRepository.updateUserName(userId, cleanNama);
+    final updated = await _userRepository.getUserById(userId);
+    if (updated == null) {
+      throw Exception('Akun pengguna tidak ditemukan.');
+    }
+    return updated;
   }
 
   /// Hapus sesi (Logout) tanpa menghapus data user di SQLite
