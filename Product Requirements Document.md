@@ -400,9 +400,9 @@ Seluruh poin terbuka dari draf sebelumnya telah ditetapkan sebagai berikut agar 
 ### G.2 Checklist Pekerjaan Spesifik Tiap Anggota (Pasca-Merge ke `main`)
 
 **1. Tugas Alfi Zikri (Auth, Modul 1, Kerangka Backend, Dashboard):**
-- [ ] Melengkapi fitur lokal Modul 1 & Auth: ubah nama profil (`AUTH-04`), dukung login/register email atau username (`AUTH-01/02`), hapus/reset profil listrik (`FR-01`), filter rentang tanggal & total pengeluaran token (`FR-04`), serta pemicu notifikasi lokal saldo rendah (`NTF-01`).
-- [ ] Membuat kerangka `backend/` (Express + MySQL + `schema.sql` + `multer` + JWT) dan `ApiClient` bersama di Flutter.
-- [ ] Menyambungkan Auth, Tarif, Profil Listrik, Pembelian Token, dan Catatan Meter (+ upload foto) ke API server + cache SQLite + mode offline baca-saja.
+- [x] Melengkapi fitur lokal Modul 1 & Auth: ubah nama profil (`AUTH-04`), dukung login/register email atau username (`AUTH-01/02`), hapus/reset profil listrik (`FR-01`), scroll filter rentang tanggal & total pengeluaran token (`FR-04`), serta pemicu notifikasi lokal saldo rendah (`NTF-01`).
+- [x] Membuat kerangka `backend/` (Express + MySQL + `schema.sql` + *auto-migration* + `multer` + JWT) beserta seluruh route API Auth & Modul 1 (`/api/auth`, `/api/tariffs`, `/api/profile`, `/api/tokens`, `/api/meter-readings`).
+- [ ] Membuat `ApiClient` bersama di Flutter dan menyambungkan Auth, Tarif, Profil Listrik, Pembelian Token, dan Catatan Meter (+ upload foto) ke API server + cache SQLite + mode offline baca-saja.
 - [ ] Melengkapi Dashboard (`DB-01`, `DB-02`: 3 visualisasi & ringkasan keuangan/target) dan tab Penghematan pada Riwayat (`RW-01`) setelah repository Modul 2 & 3 siap.
 
 **2. Tugas Kevin Rahmat Illahi (Modul 2 – Monitoring Konsumsi):**

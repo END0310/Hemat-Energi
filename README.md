@@ -66,32 +66,48 @@ hemat_energi/
 
 ---
 
-## ✅ Daftar Tugas Lanjutan per Anggota (Mengacu PRD v3.1)
+## ✅ Daftar Tugas & Progres per Anggota (Mengacu PRD v3.1)
 
 ### 1. Alfi Zikri — Pondasi, Auth, Modul 1, & Dashboard
-- [x] Menggabungkan seluruh branch modul ke branch `main` dan menyatukan database SQLite.
-- [x] Melengkapi fitur lokal Auth & Modul 1: ubah nama profil (`AUTH-04`), login/register email atau username (`AUTH-01/02`), hapus/reset profil listrik (`FR-01`), filter tanggal & total pengeluaran token (`FR-04`), dan notifikasi lokal saldo rendah (`NTF-01`).
-- [ ] Membangun kerangka `backend/` (Express + MySQL + `schema.sql` + autentikasi JWT) dan `ApiClient` di Flutter.
-- [ ] Menyambungkan endpoint `/api/auth`, `/api/tariffs`, `/api/profile`, `/api/tokens`, dan `/api/meter-readings` (+ upload foto `multer`) ke Flutter beserta mode offline baca-saja.
+- [x] Menggabungkan seluruh branch modul ke branch `main` dan menyatukan database SQLite otomatis.
+- [x] Melengkapi fitur lokal Auth & Modul 1: ubah nama profil (`AUTH-04`), login/register email atau username (`AUTH-01/02`), hapus/reset profil listrik (`FR-01`), scroll filter tanggal Hari–Bulan–Tahun & total pengeluaran token (`FR-04`), tombol isi data dummy, serta notifikasi lokal saldo rendah (`NTF-01`).
+- [x] Membangun kerangka `backend/` (Express + MySQL + `schema.sql` + *auto-migration* otomatis tanpa import manual + middleware JWT + upload foto `multer`) beserta seluruh endpoint API Auth & Modul 1 (`/api/auth`, `/api/tariffs`, `/api/profile`, `/api/tokens`, `/api/meter-readings`).
+- [ ] Membuat `ApiClient` & `flutter_secure_storage` di Flutter lalu menyambungkan layar Auth & Modul 1 ke server beserta mode offline baca-saja (`NFR-05`).
 - [ ] Melengkapi 3 visualisasi Dashboard (`DB-02`) dan tab Penghematan pada Riwayat (`RW-01`).
 
 ### 2. Kevin Rahmat Illahi — Modul 2 (Monitoring Konsumsi)
 - [ ] Menambahkan fitur **Ubah / Edit Perangkat** pada UI (`AddDeviceScreen` / `DeviceDetailScreen`) agar CRUD perangkat (`FR-05`) lengkap.
 - [ ] Menambahkan kata **“estimasi”** pada badge peringkat di `lib/screens/device_detail_screen.dart` (*“Perangkat dengan estimasi konsumsi terbesar”* sesuai `FR-08`) dan merapikan tombol dummy di `MonitoringScreen`.
-- [ ] Membuat `backend/src/routes/devices.js` (`GET`, `POST`, `PUT`, `DELETE /api/devices`) setelah kerangka `backend/` dari Zikri siap.
+- [ ] Melengkapi isi query CRUD (`GET`, `POST`, `PUT /:id`, `DELETE /:id`) pada file `backend/src/routes/devices.js` *(kerangka route, middleware JWT `req.user.id`, dan tabel `devices` MySQL dari Zikri **sudah siap** dipakai)*.
 - [ ] Membuat `DeviceRepository` di Flutter untuk menghubungkan layar Modul 2 ke `/api/devices` + cache SQLite per `user_id`.
 
 ### 3. Fauzin Azimi — Modul 3 (Penghematan Listrik)
 - [ ] Menambahkan fitur & layar/kartu **Evaluasi Penghematan (`FR-12`)** di Modul 3 (membandingkan konsumsi periode sebelumnya vs sekarang: kWh hemat, persentase hemat, dan status target).
 - [ ] Mengganti sumber data `SavingDummyData` pada `SimulationScreen` dan `RecommendationScreen` agar membaca daftar perangkat asli dari Modul 2 serta tarif & konsumsi aktual dari Modul 1.
 - [ ] Mengaktifkan pemanggilan otomatis notifikasi target `SavingNotificationService.instance.cekTarget()` (`NTF-03`).
-- [ ] Membuat `backend/src/routes/targets.js` & `backend/src/routes/simulations.js` serta menyambungkan `SavingRepository` ke API server + cache SQLite (`saving_targets` & `saving_simulations`).
+- [ ] Melengkapi isi query CRUD pada file `backend/src/routes/targets.js` & `backend/src/routes/simulations.js` *(kerangka route, middleware JWT, dan tabel `saving_targets` + `saving_simulations` MySQL dari Zikri **sudah siap** dipakai)*, lalu menyambungkan `SavingRepository` ke API server + cache SQLite.
 
 ---
 
 ## 🚀 Cara Menjalankan Proyek di Lokal
 
-Pastikan Flutter SDK sudah terpasang di laptop Anda, lalu jalankan perintah berikut di terminal pada folder `hemat_energi`:
+### A. Menjalankan Server Backend (Otomatis Buat Database Tanpa Import Manual)
+1. Nyalakan **MySQL** di **XAMPP** atau **Laragon**.
+2. Buka terminal di folder `hemat_energi/backend`:
+   ```bash
+   # Salin konfigurasi .env (cukup 1 kali saat pertama kali pull)
+   cp .env.example .env
+
+   # Instal package Node.js (cukup 1 kali di awal)
+   npm install
+
+   # Jalankan server (otomatis membuat DB hemat_energi, 8 tabel, & tarif PLN!)
+   npm run dev
+   ```
+3. Cek di browser: buka `http://localhost:3000/api/health` (pastikan muncul `"database": "connected"`).
+
+### B. Menjalankan Aplikasi Flutter
+Buka terminal lain pada folder utama `hemat_energi`:
 
 ```bash
 # 1. Unduh seluruh package Flutter
@@ -106,8 +122,6 @@ flutter test
 # 4. Jalankan aplikasi ke emulator Android / perangkat terhubung
 flutter run
 ```
-
-*(Catatan: jika sebelumnya di emulator/HP pernah terinstal versi branch lama, **uninstall** terlebih dahulu aplikasi lama di emulator/HP agar database SQLite membentuk tabel gabungan terbaru dengan bersih).*
 
 ---
 
